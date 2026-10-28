@@ -43,31 +43,58 @@
 
   // ── rows ──
 
-  async function becauseYouWatched(uid, limit) {
+  // last few things watched, with episodes standing in for their show
+  async function recentSeeds(uid, count) {
     const recent = await get('Items', {
-      userId: uid, IncludeItemTypes: 'Movie', Recursive: true, Filters: 'IsPlayed',
-      SortBy: 'DatePlayed', SortOrder: 'Descending', Limit: 2,
+      userId: uid, IncludeItemTypes: 'Movie,Episode', Recursive: true, Filters: 'IsPlayed',
+      SortBy: 'DatePlayed', SortOrder: 'Descending', Limit: 40,
     });
-    return Promise.all(recent.Items.map(async (seed) => {
+    const seen = new Set();
+    const seeds = [];
+    for (const item of recent.Items) {
+      const seed = item.Type === 'Episode' ? { Id: item.SeriesId, Name: item.SeriesName, Type: 'Series' } : item;
+      if (!seed.Id || seen.has(seed.Id)) continue;
+      seen.add(seed.Id);
+      seeds.push(seed);
+      if (seeds.length === count) break;
+    }
+    return seeds;
+  }
+
+  async function becauseYouWatched(uid, limit) {
+    const seeds = await recentSeeds(uid, 3);
+    return Promise.all(seeds.map(async (seed) => {
       const similar = await get(`Items/${seed.Id}/Similar`, { userId: uid, Limit: limit * 2, ...FIELDS });
       return { title: `Because you watched ${seed.Name}`, items: similar.Items.filter((i) => !i.UserData?.Played).slice(0, limit) };
     }));
   }
 
-  async function topPicks(uid, limit, rand) {
-    const history = await get('Items', {
-      userId: uid, IncludeItemTypes: 'Movie', Recursive: true, Filters: 'IsPlayed',
-      SortBy: 'DatePlayed', SortOrder: 'Descending', Limit: 40, Fields: 'Genres',
-    });
+  const favoriteGenre = (items) => {
     const counts = {};
-    history.Items.forEach((m) => (m.Genres || []).forEach((g) => (counts[g] = (counts[g] || 0) + 1)));
-    const favorite = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
-    if (!favorite) return [];
-    const pool = await get('Items', {
-      userId: uid, IncludeItemTypes: 'Movie', Recursive: true, Genres: favorite, Filters: 'IsUnplayed',
-      SortBy: 'CommunityRating', SortOrder: 'Descending', Limit: 80, ...FIELDS,
-    });
-    return [{ title: `Top picks for you: ${favorite}`, items: shuffle(pool.Items, rand).slice(0, limit) }];
+    items.forEach((m) => (m.Genres || []).forEach((g) => (counts[g] = (counts[g] || 0) + 1)));
+    return Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+  };
+
+  // the genre you watch most, best-rated titles you haven't seen
+  async function topPicks(uid, limit, rand) {
+    const [movies, episodes] = await Promise.all(['Movie', 'Episode'].map((type) => get('Items', {
+      userId: uid, IncludeItemTypes: type, Recursive: true, Filters: 'IsPlayed',
+      SortBy: 'DatePlayed', SortOrder: 'Descending', Limit: 40, Fields: 'Genres',
+    })));
+    const showIds = [...new Set(episodes.Items.map((e) => e.SeriesId).filter(Boolean))];
+    const shows = showIds.length ? (await get('Items', { userId: uid, Ids: showIds.join(','), Fields: 'Genres' })).Items : [];
+
+    const rows = [];
+    for (const [type, history, label] of [['Movie', movies.Items, 'Top picks for you'], ['Series', shows, 'TV picks for you']]) {
+      const favorite = favoriteGenre(history);
+      if (!favorite) continue;
+      const pool = await get('Items', {
+        userId: uid, IncludeItemTypes: type, Recursive: true, Genres: favorite, Filters: 'IsUnplayed',
+        SortBy: 'CommunityRating', SortOrder: 'Descending', Limit: 80, ...FIELDS,
+      });
+      rows.push({ title: `${label}: ${favorite}`, items: shuffle(pool.Items, rand).slice(0, limit) });
+    }
+    return rows;
   }
 
   async function newArrivals(uid, limit) {
@@ -157,7 +184,7 @@
     building = true;
     try {
       const uid = api().getCurrentUserId();
-      const cfg = await get('SmartHome/config').catch(() => ({ ShelfRows: 6, ItemsPerRow: 20 }));
+      const cfg = await get('SmartHome/config').catch(() => ({ ShelfRows: 8, ItemsPerRow: 20 }));
       const rand = seeded(new Date().toDateString() + uid);
       const results = await Promise.allSettled([
         becauseYouWatched(uid, cfg.ItemsPerRow),

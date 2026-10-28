@@ -3,10 +3,18 @@
     "guid": "4c1f7a52-9d3e-4b8a-a6f1-2e5d8c7b9a13",
     "name": "Smart Home",
     "description": "Netflix-style rows on the Jellyfin home screen.",
-    "overview": "Because you watched, top picks for you, new on the server, and a daily rotation of your collections. Requires File Transformation.",
+    "overview": "Netflix-style home rows (because you watched, top picks, new arrivals) plus auto-updating smart collections for movies and TV, with posters. Requires File Transformation.",
     "owner": "Blackkingsman",
     "category": "General",
     "versions": [
+      {
+        "version": "1.1.0.0",
+        "changelog": "Smart Shelves built in: movie and TV collections with posters, kept up to date automatically. Top rated and recent hits per genre. TV in the home rows.",
+        "targetAbi": "12.4.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/Blackkingsman/jellyfin-smart-home/main/releases/smart-home_1.1.0.0.zip",
+        "checksum": "ded09d49a1420ab3686e08176430a606",
+        "timestamp": "2026-10-28T21:40:02Z"
+      },
       {
         "version": "1.0.0.0",
         "changelog": "First release.",

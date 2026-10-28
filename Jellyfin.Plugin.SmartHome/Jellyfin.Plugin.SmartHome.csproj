@@ -5,7 +5,7 @@
     <RootNamespace>Jellyfin.Plugin.SmartHome</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <Version>1.0.0.0</Version>
+    <Version>1.1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -16,10 +16,15 @@
     <PackageReference Include="Jellyfin.Model" Version="12.4.0">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
+    <!-- same version the server ships, so the plugin uses the server's copy -->
+    <PackageReference Include="SkiaSharp" Version="3.119.4">
+      <ExcludeAssets>runtime;native</ExcludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Include="Web\client.js" />
+    <EmbeddedResource Include="Fonts\BebasNeue-Regular.ttf" />
   </ItemGroup>
 
 </Project>
