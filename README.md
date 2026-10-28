@@ -5,14 +5,15 @@ Netflix-style home screen for Jellyfin 12.4: personal rows on the home page, plu
 **Home rows** (per user, new mix daily)
 - **Because you watched [title]**: similar movies and shows to what you watched last, unwatched only
 - **Top picks for you / TV picks for you**: best-rated unwatched titles in the genre you watch most
-- **New on the server**: latest movies and shows
+- **New releases**: the newest movies and shows by release date
+- **Recently added**: whatever was added to the server last, any year
 - **Shelves**: a daily rotation of your collections, unwatched first
 
 **Smart Shelves** (collections with generated posters)
-- Movies: Top Rated, Critics' Picks, Fresh Hits, Date Night, Fright Night, Mind-Benders, and more
+- Movies: New Releases, Top Rated, Critics' Picks, Fresh Hits, Date Night, Fright Night, Mind-Benders, and more
 - Per genre, for movies and TV: **Top Rated [genre]** and **Recent [genre] Hits** (last five years)
 - Decades: e.g. 80s Comedy, 90s Action, 2000s Drama, for the biggest combos in your library
-- TV: New Episodes, Top Rated TV, Kids & Family TV, Docuseries
+- TV: New TV Releases, New Episodes, Top Rated TV, Kids & Family TV, Docuseries
 - Ratings blend audience and critic scores, and brand-new releases without reviews don't jump the line
 - Updates 10 minutes after new content is added, and nightly at 4 AM. Run it by hand from **Dashboard → Scheduled Tasks → Update Smart Shelves**.
 

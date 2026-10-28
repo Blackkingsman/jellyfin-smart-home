@@ -66,14 +66,18 @@ public static class ShelfCatalog
     /// <summary>TMDb lists the defining genre first: Aliens is Action, not Thriller.</summary>
     private static string? MainGenre(BaseItem m) => m.Genres?.FirstOrDefault();
 
-    private static Shelf Movies(string key, string name, Func<BaseItem, bool> pick, Func<BaseItem, double>? sort = null)
-        => new(key, name, "MOVIES", MovieMin, pick, sort);
+    private static Shelf Movies(string key, string name, Func<BaseItem, bool> pick, Func<BaseItem, double>? sort = null, int limit = MaxItems)
+        => new(key, name, "MOVIES", MovieMin, pick, sort, limit);
+
+    // released (not added to the server) in the last year, newest first
+    private static bool NewRelease(BaseItem m, DateTime today) => DaysAgo(m.PremiereDate, today) is >= 0 and <= 365;
 
     private static Shelf Shows(string key, string name, Func<BaseItem, bool> pick, Func<BaseItem, double>? sort = null, int min = ShowMin)
         => new(key, name, "SHOWS", min, pick, sort);
 
     private static List<Shelf> MovieShelves(DateTime today) =>
     [
+        Movies("new-releases", "New Releases", m => NewRelease(m, today), m => DaysAgo(m.PremiereDate, today), GenreLimit),
         Movies("top-rated", "Top Rated", m => Rating(m) >= 7.5),
         Movies("critics-picks", "Critics' Picks", m => (m.CriticRating ?? 0) >= 90 && (m.CommunityRating ?? 0) >= 7.0, m => -((m.CriticRating ?? 0) + (5 * Rating(m)))),
         Movies("fresh-hits", "Fresh Hits", m => DaysAgo(m.DateCreated, today) <= 45 && Rating(m) >= 6.8, m => DaysAgo(m.DateCreated, today)),
@@ -95,6 +99,7 @@ public static class ShelfCatalog
     private static List<Shelf> ShowShelves(DateTime today) =>
     [
         Shows("tv-new-episodes", "New Episodes", s => DaysAgo(LastEpisodeAdded(s), today) <= 21, s => DaysAgo(LastEpisodeAdded(s), today), min: 4),
+        Shows("tv-new-releases", "New TV Releases", s => NewRelease(s, today), s => DaysAgo(s.PremiereDate, today)),
         Shows("tv-top-rated", "Top Rated TV", s => Rating(s) >= 8.0),
         Shows("tv-kids", "Kids & Family TV", s => G(s, "Kids", "Family") && Rating(s) >= 6.5),
         Shows("tv-docuseries", "Docuseries", s => G(s, "Documentary") && Rating(s) >= 7.0),

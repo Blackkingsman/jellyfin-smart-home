@@ -98,11 +98,20 @@
   }
 
   async function newArrivals(uid, limit) {
-    const latest = await get('Items', {
-      userId: uid, IncludeItemTypes: 'Movie,Series', Recursive: true,
-      SortBy: 'DateCreated', SortOrder: 'Descending', Limit: limit, ...FIELDS,
-    });
-    return [{ title: 'New on the server', items: latest.Items }];
+    const today = new Date().toISOString();
+    const [released, added] = await Promise.all([
+      // actually new: released recently, newest first (MaxPremiereDate drops placeholder future dates)
+      get('Items', {
+        userId: uid, IncludeItemTypes: 'Movie,Series', Recursive: true, MaxPremiereDate: today,
+        SortBy: 'PremiereDate', SortOrder: 'Descending', Limit: limit, ...FIELDS,
+      }),
+      // new to this server, whatever year it came out
+      get('Items', {
+        userId: uid, IncludeItemTypes: 'Movie,Series', Recursive: true,
+        SortBy: 'DateCreated', SortOrder: 'Descending', Limit: limit, ...FIELDS,
+      }),
+    ]);
+    return [{ title: 'New releases', items: released.Items }, { title: 'Recently added', items: added.Items }];
   }
 
   async function shelves(uid, count, limit, rand) {
@@ -195,7 +204,8 @@
       const [byw, picks, fresh, themed] = results.map((r) => (r.status === 'fulfilled' ? r.value : []));
       results.filter((r) => r.status === 'rejected').forEach((r) => console.warn('[SmartHome]', r.reason));
 
-      const rows = interleave([...byw, ...picks, ...fresh], themed).filter((r) => r.items.length >= 4);
+      const [released, added] = fresh;
+      const rows = interleave([released, ...byw, ...picks, added].filter(Boolean), themed).filter((r) => r.items.length >= 4);
 
       let container = homeTab.querySelector(':scope > .smartHome');
       if (!container) {
