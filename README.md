@@ -36,11 +36,15 @@ dotnet build Jellyfin.Plugin.SmartHome -c Release
 
 ## Install
 
-Copy the build output into a folder in your server's plugin directory, then restart Jellyfin:
+1. In Jellyfin: **Dashboard → Plugins → Repositories → +**, and add
+   `https://raw.githubusercontent.com/Blackkingsman/jellyfin-smart-home/main/manifest.json`
+2. **Catalog → Smart Home → Install**, then restart Jellyfin.
 
-```
-<jellyfin config>/plugins/SmartHome_1.0.0.0/Jellyfin.Plugin.SmartHome.dll
-```
+New versions show up as updates in the same place.
+
+## Release
+
+Build, zip the DLL into `releases/smart-home_<version>.zip`, and add a version entry to `manifest.json` with the zip's MD5 checksum.
 
 ## Settings
 

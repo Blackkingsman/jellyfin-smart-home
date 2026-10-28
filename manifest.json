@@ -1,0 +1,20 @@
+[
+  {
+    "guid": "4c1f7a52-9d3e-4b8a-a6f1-2e5d8c7b9a13",
+    "name": "Smart Home",
+    "description": "Netflix-style rows on the Jellyfin home screen.",
+    "overview": "Because you watched, top picks for you, new on the server, and a daily rotation of your collections. Requires File Transformation.",
+    "owner": "Blackkingsman",
+    "category": "General",
+    "versions": [
+      {
+        "version": "1.0.0.0",
+        "changelog": "First release.",
+        "targetAbi": "12.4.0.0",
+        "sourceUrl": "https://raw.githubusercontent.com/Blackkingsman/jellyfin-smart-home/main/releases/smart-home_1.0.0.0.zip",
+        "checksum": "5598a530e98c50084e6d5fe489403320",
+        "timestamp": "2026-10-28T21:21:16Z"
+      }
+    ]
+  }
+]
