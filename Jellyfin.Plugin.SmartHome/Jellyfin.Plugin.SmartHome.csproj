@@ -16,8 +16,6 @@
     <PackageReference Include="Jellyfin.Model" Version="12.4.0">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
-    <!-- File Transformation's registration API takes a Newtonsoft JObject -->
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
   <ItemGroup>

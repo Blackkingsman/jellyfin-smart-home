@@ -1,8 +1,8 @@
 using System.Reflection;
 using System.Runtime.Loader;
+using System.Text.Json;
 using MediaBrowser.Model.Tasks;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 
 namespace Jellyfin.Plugin.SmartHome;
 
@@ -46,16 +46,21 @@ public class StartupTask : IScheduledTask
             return Task.CompletedTask;
         }
 
-        JObject payload = new JObject
+        string json = JsonSerializer.Serialize(new Dictionary<string, string?>
         {
-            { "id", IndexTransformId },
-            { "fileNamePattern", "index.html" },
-            { "callbackAssembly", GetType().Assembly.FullName },
-            { "callbackClass", typeof(IndexPatch).FullName },
-            { "callbackMethod", nameof(IndexPatch.Apply) },
-        };
+            ["id"] = IndexTransformId,
+            ["fileNamePattern"] = "index.html",
+            ["callbackAssembly"] = GetType().Assembly.FullName,
+            ["callbackClass"] = typeof(IndexPatch).FullName,
+            ["callbackMethod"] = nameof(IndexPatch.Apply),
+        });
 
-        register.Invoke(null, new object?[] { payload });
+        // Build the JObject with File Transformation's own copy of Newtonsoft, so the types match
+        // even when each plugin loads its own copy of the library
+        Type jObjectType = register.GetParameters()[0].ParameterType;
+        object? payload = jObjectType.GetMethod("Parse", new[] { typeof(string) })?.Invoke(null, new object[] { json });
+
+        register.Invoke(null, new[] { payload });
         _logger.LogInformation("Smart Home registered its index.html transformation");
         return Task.CompletedTask;
     }
